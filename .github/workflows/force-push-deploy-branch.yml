@@ -1,0 +1,30 @@
+# this workflow force-pushes commits from a given source ref to a deploy branch
+
+name: force-push deploy branch
+
+on:
+  workflow_call:
+    inputs:
+      source_ref:
+        type: string
+        description: 'git rev to force-push'
+        required: true
+      target_branch:
+        type: string
+        description: 'branch to force-push to'
+        required: true
+
+jobs:
+  force-push-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+      - name: force-push branch
+        run: |
+          echo "Force-push ref \"${{ inputs.source_ref }}\" to branch \"${{ inputs.target_branch }}\""
+          git checkout -b ${{ inputs.target_branch }} ${{ inputs.source_ref }}
+          git push --force origin ${{ inputs.target_branch }}
