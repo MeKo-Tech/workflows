@@ -25,7 +25,7 @@ on:
 
 jobs:
   is_released:
-    uses: ./.github/workflows/is_released.ym
+    uses: ./.github/workflows/is_released.yml
     with:
       source_ref: ${{ inputs.source_ref }}
       image_validate: ${{ inputs.image_validate }}
