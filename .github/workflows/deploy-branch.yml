@@ -1,0 +1,67 @@
+# this workflow creates a deploy branch from a tag
+
+on:
+  workflow_call:
+    inputs:
+      source_ref:
+        type: string
+        description: 'source ref to create branch from, e.g. tags/STAGING'
+        required: true
+      target_branch:
+        type: string
+        description: 'target branch to create. Any changes from the source ref will be force-pushed to this branch'
+        required: true
+      image_validate:
+        type: boolean
+        description: 'check whether a docker image exists for the release'
+        default: true
+      image_name:
+        type: string
+        description: 'name of the docker image to validate'
+      delete_invalid_tags:
+        type: boolean
+        default: true
+        description: 'whether to automatically delete source_ref in case it is a tag and does not refer to a valid release (e.g. STAGING nor refering to a released commit)'
+
+jobs:
+  is_released:
+    uses: ./.github/workflows/is_released.ym
+    with:
+      source_ref: ${{ inputs.source_ref }}
+      image_validate: ${{ inputs.image_validate }}
+      image_name: ${{ inputs.image_name }}
+
+  # delete invalid tags from repo
+  delete_invalid_tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+      - is_released
+    if: ${{ failure() && inputs.delete_invalid_tags && startsWith(inputs.source_ref, 'tags/') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+      - run: |
+          echo "delete ${{ inputs.source_ref }} from remote"
+          git push --delete origin ${{ inputs.source_ref }}
+
+  force-push-branch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs: 
+      - is_released
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+      - name: force-push branch
+        run: |
+          echo "Force-push ref \"${{ inputs.source_ref }}\" to branch \"${{ inputs.target_branch }}\""
+          git checkout -b ${{ inputs.target_branch }} ${{ inputs.source_ref }}
+          git push --force origin ${{ inputs.target_branch }}

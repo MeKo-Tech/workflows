@@ -43,6 +43,7 @@ jobs:
 * reusable workflows run in the context of the calling workflow (at the calling repository) and, hence, use the context [github](https://docs.github.com/de/actions/learn-github-actions/contexts#github-context) and `secrets.GITHUB_TOKEN` (for automatic authentication) for that workflow
 * environment variables, which are defined at the `env` context at calling worklow will not be passed to the called (reusable) workflow (and vice-versa)
 * permissions must be less-restrictive or equal for the calling workflow. -> Check the definition of the reusable workflow for minimal required permissions to be used for the calling workflow
+* there are some [caveats](https://github.com/Primoxo/step-renderer/tree/main/deployment) when re-running workflows, which call reusable workflows
 
 ## Further Reading
 
