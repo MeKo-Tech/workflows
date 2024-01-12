@@ -38,8 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     # permissions take only effect for authentication with GITHUB_TOKEN
     permissions:
-      contents: write
-      pull-requests: read
+      contents: write       # writes release and tag
+      pull-requests: write  # reads PR and adds comments
     outputs:
       release_created: ${{ steps.release.outputs.release_created }} 
       release_semver: '${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}'
