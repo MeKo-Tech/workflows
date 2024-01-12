@@ -1,5 +1,9 @@
 # This action tags the commit with a Semver number and creates a GitHub release wich references this tag
 #
+# Limitations:
+#   release_semver is set only in case a root package (package path: ".") is specified in release-please config file
+#   this workflow uses the default GITHUB_TOKEN for authentication and will not trigger any workflow for resources which are created (e.g. for releases or tags). In case this is required, pass a custom access token to the `release` step
+#
 # required permissions:
 #   contents: write
 
@@ -8,10 +12,6 @@ name: release
 on:
   workflow_call:
     inputs:
-      token: 
-        type: string
-        description: 'Access token used by the workflow. This workflow will not trigger any subsequent workflow runs in case the default GITHUB_TOKEN is used'
-        default: ${{ github.token }}
       config_file:
         type: string
         description: 'path to release-please config file'
@@ -42,7 +42,6 @@ jobs:
       - uses: google-github-actions/release-please-action@v4
         id: release
         with:  
-          token: ${{ inputs.token }}
           config-file: ${{ inputs.config_file }}
           manifest-file: ${{ inputs.manifest_file }}
           skip-github-pull-request: true     # configure release-please action to only create releases
