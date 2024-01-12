@@ -30,7 +30,7 @@ jobs:
   release:
     uses: ./.github/workflows/release.yml   # call workflow from this repo
     with:
-      target_branch: ${{ inputs.config_file }}
+      target_branch: ${{ inputs.target_branch }}
       config_file: ${{ inputs.config_file }}
       manifest_file: ${{ inputs.manifest_file }}
 
