@@ -12,7 +12,6 @@ on:
       source_ref:
         type: string
         description: 'git ref to build'
-        required: true
         default: ${{ github.event.ref }}    # defaults to ref that triggered the (caller) worfklow
       image_name:
         type: string
@@ -24,9 +23,8 @@ on:
         required: true
       image_is_latest:
         type: boolean
-        description: 'defines whether the tag "latest" is added to the image'
+        description: 'defines whether tag "latest" is added to the image'
         default: true
-        required: true
     
 
 jobs:
