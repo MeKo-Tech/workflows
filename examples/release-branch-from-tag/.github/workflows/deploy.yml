@@ -1,0 +1,28 @@
+name: deploy
+
+on:
+  push:
+    tags:
+      - 'STAGING'
+      - 'PRODUCTION'
+
+jobs:
+  deploy-staging:
+    if: ${{ github.event.ref == 'refs/tags/STAGING' }}
+    uses: Primoxo/workflows/.github/workflows/deploy-branch.yml@main
+    with:
+      source_ref: ${{ github.event.ref }}
+      target_branch: deployed_staging
+      image_validate: true
+      image_name: 'primoxo/release-please'
+      delete_invalid_tags: true
+
+  deploy-production:
+    if: ${{ github.event.ref == 'refs/tags/PRODUCTION' }}
+    uses: Primoxo/workflows/.github/workflows/deploy-branch.yml@main
+    with:
+      source_ref: ${{ github.event.ref }}
+      target_branch: deployed_production
+      image_validate: true
+      image_name: 'primoxo/release-please'
+      delete_invalid_tags: true
