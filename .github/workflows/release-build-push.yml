@@ -28,7 +28,7 @@ on:
   
 jobs:
   release:
-    uses: ./.github/workflows/release.yml@main
+    uses: ./.github/workflows/release.yml   # call workflow from this repo
     with:
       target_branch: ${{ inputs.config_file }}
       config_file: ${{ inputs.config_file }}
@@ -38,7 +38,7 @@ jobs:
     needs:
       - release
     if: ${{ needs.release.outputs.release_created }}
-    uses: ./.github/workflows/docker-build-push.yml@main
+    uses: ./.github/workflows/docker-build-push.yml   # call workflow from this repo
     with:
       image_name: 'primoxo/release-please'
       image_tag: ${{ needs.release.outputs.release_semver}}
