@@ -1,0 +1,45 @@
+
+
+name: release-build-push
+
+on:
+  workflow_call:
+    inputs:
+      target_branch:
+        type: string
+        description: 'target branch for release pull requests'
+        default: main
+      config_file:
+        type: string
+        description: 'path to release-please config file'
+        default: release-please-config.json
+      manifest_file:
+        type: string
+        description: 'path to release-please manifest file'
+        default: .release-please-manifest.json
+      image_name:
+        type: string
+        description: 'name of the docker image (must include package name, e.g. primoxo/preview-generator)'
+        required: true
+      image_tag:
+        type: string
+        description: 'tag to be added to the image'
+        required: true      
+  
+jobs:
+  release:
+    uses: ./.github/workflows/release.yml@main
+    with:
+      target_branch: ${{ inputs.config_file }}
+      config_file: ${{ inputs.config_file }}
+      manifest_file: ${{ inputs.manifest_file }}
+
+  build-push:
+    needs:
+      - release
+    if: ${{ needs.release.outputs.release_created }}
+    uses: ./.github/workflows/docker-build-push.yml@main
+    with:
+      image_name: 'primoxo/release-please'
+      image_tag: ${{ needs.release.outputs.release_semver}}
+      image_is_latest: true
