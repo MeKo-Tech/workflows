@@ -1,4 +1,4 @@
-
+# todo: add permissions and description / comments
 
 name: release-build-push
 
@@ -40,6 +40,6 @@ jobs:
     if: ${{ needs.release.outputs.release_created }}
     uses: ./.github/workflows/docker-build-push.yml   # call workflow from this repo
     with:
-      image_name: ${{ inputs.image_name }}}
-      image_tag: ${{ needs.release.outputs.release_semver}}
+      image_name: ${{ inputs.image_name }}
+      image_tag: ${{ needs.release.outputs.release_semver }}
       image_is_latest: ${{ inputs.image_is_latest }}
