@@ -1,0 +1,46 @@
+# this action creates a release-pr for the target branch in case deployable units are present at the source ref
+# deployable uints are read from conventional commit messages
+#
+# the release pr will:
+# - increment the application version at `.release-please-manifest.json`
+# - increment the application version at framework-specific files (e.g. `package.json`, `pyproject.toml`, `go.mod`,...)
+# - update `CHANGELOG.md` and include conventional commit messages
+#
+# this action uses GITHUB_TOKEN for automatic authentication. -> PRs and branches which are created by this workflow will not trigger any other workflows.
+#
+# required permissions:
+#   contents: write
+#   pull-requests: write
+
+name: release-pr
+
+on:
+  workflow_call:
+    inputs:
+      target_branch:
+        type: string
+        description: 'target branch for release pull requests'
+        default: main
+      config_file:
+        type: string
+        description: 'path to release-please config file'
+        default: release-please-config.json
+      manifest_file:
+        type: string
+        description: 'path to release-please manifest file'
+        default: .release-please-manifest.json
+
+jobs:
+  release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write           # the action creates and pushes a new branch for the changes which are introduced with the PR
+      pull-requests: write
+    steps:
+      - uses: google-github-actions/release-please-action@v4
+        with:  
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target-branch: ${{ inputs.target_branch }}
+          config-file: ${{ inputs.config_file }}
+          manifest-file: ${{ inputs.manifest_file }}
+          skip-github-release: true     # configure release-please action to only create PRs

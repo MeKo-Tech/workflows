@@ -1,4 +1,4 @@
-# builds docker image from git ref and pushes to GitHub Packages
+# builds docker image from git ref and pushes to GitHub Package
 #
 # required permissions:
 #   contents: read
@@ -28,7 +28,7 @@ on:
     
 
 jobs:
-  build-and-push-docker:
+  build-and-push:
     runs-on: ubuntu-latest
 
     # permissions for autmatic authentication with github.token
