@@ -1,0 +1,83 @@
+# checks whether git ref points to a commit which has been released.
+# For a released commit, there must be a git tag with a semantic version number, a GitHub release which refernces this tag (-> see release workflow) and optionally a Docker image with the same tag (-> see release-build-push) workflow
+#
+# required permissions
+#   contents: read
+#   packages: read
+
+name: is released
+
+on:
+  workflow_call:
+    inputs:
+      source_ref:
+        type: string
+        description: 'git ref to build'
+        default: ${{ github.event.ref }}    # defaults to ref that triggered the (caller) worfklow
+      image_validate:
+        type: boolean
+        description: 'whether to check if Docker image with matching tag exists'
+        default: true
+      image_name:
+        type: string
+        description: 'name of the Docker image to check (must include package name, e.g. primoxo/preview-generator)'
+
+
+jobs:
+  is_released:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 1    # fetch only the latest commit
+          fetch-tags: true
+      
+      # validate, whether there is a valid semver tag for the same commit
+      - name: has Semver release tag
+        id: release_tag
+        run: |
+          # get all tags for git ref and check whether there is a tag which matches the Semver format. Those tags are automatically generated for valid releases
+          SEMVER_TAG_CNT=$(git tag --points-at ${{ inputs.source_ref }} | (grep -E '[0-9]{1,}.[0-9]{1,}.[0-9]{1,}' --count || true) )
+
+          if [ "${SEMVER_TAG_CNT}" -lt 1 ]; then
+            echo "git ref \"${{ inputs.source_ref }}\" has no valid release"
+            echo "found no tag matching Semver format for git ref \"${{ inputs.source_ref }}\""
+            exit 1
+          elif [ "${SEMVER_TAG_CNT}" -gt 1 ]; then
+            echo "found multiple tags matching Semver format for git ref \"${{ inputs.source_ref }}\""
+            echo "found tags: \"$(git tag --points-at ${{ inputs.source_ref }})\""
+            exit 1
+          fi
+          
+          VERSION_TAG=$(git tag --points-at ${{ inputs.source_ref }} | grep -E '[0-9]{1,}.[0-9]{1,}.[0-9]{1,}')
+          echo "found version tag: \"$VERSION_TAG\""
+
+          # set output for next step
+          echo "VERSION_TAG=${VERSION_TAG}" >> "$GITHUB_OUTPUT"
+
+      # check whether there is a GitHub release for that tag
+      - name: has GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "check whether GitHub release for tag \"${{ steps.release_tag.outputs.VERSION_TAG }}\" exists"
+          gh release view ${{ steps.release_tag.outputs.VERSION_TAG }} --json name --template 'found release: {{.name}}'
+
+      - name: docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+  
+        # check whether there is a Docker image for the release tag
+      - name: "has Docker image"
+        if: ${{ inputs.image_validate }}
+        run: |
+          echo "check whether Docker image for tag \"ghcr.io/${{ inputs.image_name }}:${{ steps.release_tag.outputs.VERSION_TAG }}\" exists"
+          docker manifest inspect ghcr.io/${{ inputs.image_name }}:${{ steps.release_tag.outputs.VERSION_TAG }} > /dev/null
