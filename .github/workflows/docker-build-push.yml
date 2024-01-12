@@ -1,0 +1,79 @@
+# builds docker image from git ref and pushes to GitHub Packages
+#
+# required permissions:
+#   contents: read
+#   packages: write
+
+name: docker build push
+
+on:
+  workflow_call:
+    inputs:
+      source_ref:
+        type: string
+        description: 'git ref to build'
+        required: true
+        default: ${{ github.event.ref }}    # defaults to ref that triggered the (caller) worfklow
+      image_name:
+        type: string
+        description: 'name of the docker image (must include package name, e.g. primoxo/preview-generator)'
+        required: true
+      image_tag:
+        type: string
+        description: 'tag to be added to the image'
+        required: true
+      image_is_latest:
+        type: boolean
+        description: 'defines whether the tag "latest" is added to the image'
+        default: true
+        required: true
+    
+
+jobs:
+  build-and-push-docker:
+    runs-on: ubuntu-latest
+
+    # permissions for autmatic authentication with github.token
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # checkout current git repository (from caller workflow) at ref
+      # by default, this action uses gtihub.token for authentication, which is passed from the calling workflow. Access credentials are stored to local git config and can be used for git commands running in subsequent steps
+      - name: checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 1                # only fetch last commit; no history
+      
+      # extract docker metadata from Git reference and GitHub event
+      # This action is capable of tagging docker images for a variety of GitHub events (e.g. tag image tag from branch names, git tags, or PR names)
+      # We DO NOT take use of the capability and instead explicitly define the image tags which should be added (`type=raw`)
+      # This is because we want to take control over the images which are created. (DO NOT create images for just any git ref or tag)
+      # The logic, at which point in time images are created is left to the calling workflows (e.g. by setting appropriate triggers for these workflows). Calling workflows should explicitly define a tag for the docker image
+      - name: extract docker metadata
+        id: docker_meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ inputs.image_name }}
+          tags: |
+            type=raw,value=${{ inputs.image_tag }}
+            ${{ inputs.image_is_latest && 'type=raw,value=latest' }}     #  add `latest` tag if required
+
+      # login to docker registry / github packages
+      - name: docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # build and push image
+      - name: build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
