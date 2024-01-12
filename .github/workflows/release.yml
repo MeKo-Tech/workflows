@@ -12,6 +12,10 @@ name: release
 on:
   workflow_call:
     inputs:
+      target_branch:
+        type: string
+        description: 'target branch for release pull requests'
+        default: main
       config_file:
         type: string
         description: 'path to release-please config file'
@@ -43,6 +47,7 @@ jobs:
       - uses: google-github-actions/release-please-action@v4
         id: release
         with:  
+          target-branch: ${{ inputs.target_branch }}
           config-file: ${{ inputs.config_file }}
           manifest-file: ${{ inputs.manifest_file }}
           skip-github-pull-request: true     # configure release-please action to only create releases
