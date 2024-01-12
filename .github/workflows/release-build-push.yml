@@ -21,10 +21,6 @@ on:
         type: string
         description: 'name of the docker image (must include package name, e.g. primoxo/preview-generator)'
         required: true
-      image_tag:
-        type: string
-        description: 'tag to be added to the image'
-        required: true      
   
 jobs:
   release:
