@@ -21,6 +21,10 @@ on:
         type: string
         description: 'name of the docker image (must include package name, e.g. primoxo/preview-generator)'
         required: true
+      image_is_latest:
+        type: boolean
+        description: 'defines whether tag "latest" is added to the image'
+        default: true
   
 jobs:
   release:
@@ -38,4 +42,4 @@ jobs:
     with:
       image_name: ${{ inputs.image_name }}}
       image_tag: ${{ needs.release.outputs.release_semver}}
-      image_is_latest: true
+      image_is_latest: ${{ inputs.image_is_latest }}
