@@ -38,7 +38,7 @@ jobs:
       contents: write
     needs:
       - is_released
-    if: ${{ failure() && inputs.delete_invalid_tags && startsWith(inputs.source_ref, 'tags/') }}
+    if: ${{ failure() && inputs.delete_invalid_tags && startsWith(inputs.source_ref, 'refs/tags/') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
