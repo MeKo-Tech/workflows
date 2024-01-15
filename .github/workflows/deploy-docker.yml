@@ -74,7 +74,7 @@ jobs:
           echo "${{ secrets.app_config_env }}" > .env
 
           # todo: delete after debugging
-          echo: ".env:"
+          echo ".env:"
           cat .env
 
           # todo: either remove after debugging or maks secret values
