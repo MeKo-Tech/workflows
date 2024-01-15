@@ -46,7 +46,7 @@ jobs:
       - name: add ssh private key
         uses: webfactory/ssh-agent@v0.8.0
         with:
-          ssh-private-key:${{ secrets.ssh_private_key }}
+          ssh-private-key: ${{ secrets.ssh_private_key }}
 
       - name: create docker context
         run: |
