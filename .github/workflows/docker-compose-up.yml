@@ -35,7 +35,6 @@ on:
         required: true
         description: .env file content holding application configuration. Check docker-compose file for available variables.
 
-
 env:
   DOCKER_CONTEXT_NAME: docker-remote-host   # name of the docker context used to connect to remote host
 
@@ -82,7 +81,8 @@ jobs:
           docker context use ${{ env.DOCKER_CONTEXT_NAME }}
 
           # write app config to local .env file
-          echo "${{ secrets.env_file_data }}" > .env
+          #  secrets.env_file_data will be expanded, but variables in the string ($) will not be substituted
+          echo '${{ secrets.env_file_data }}' > .env
 
 
           # todo: either remove after debugging or maks secret values
