@@ -48,6 +48,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.ssh_private_key }}
 
+      # Todo: for security hardening, the hosts server public key should explicity be specified (e.g. fro a repository variable) instead of using ssh-keyscan
+      - name: add ssh known host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ inputs.ssh_host }} >> ~/.ssh/known_hosts
+
       - name: create docker context
         run: |
           docker context create ${{ env.DOCKER_CONTEXT_NAME }} --docker "host=ssh://${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
@@ -68,9 +74,11 @@ jobs:
           echo "${{ secrets.app_config_env }}" > .env
 
           # todo: delete after debugging
+          echo: ".env:"
           cat .env
 
           # todo: either remove after debugging or maks secret values
+          echo "docker compose config:"
           docker compose -f ${{ inputs.compose_file }} -p ${{ inputs.compose_project_name }} --env-file .env config
 
           # run application
