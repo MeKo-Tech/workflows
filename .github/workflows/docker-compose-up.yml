@@ -84,6 +84,9 @@ jobs:
           #  secrets.env_file_data will be expanded, but variables in the string ($) will not be substituted
           echo '${{ secrets.env_file_data }}' > .env
 
+          # todo: remove after debugging
+          cat .env
+
 
           # todo: either remove after debugging or maks secret values
           echo "docker compose config:"
