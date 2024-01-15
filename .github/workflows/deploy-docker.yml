@@ -1,0 +1,77 @@
+# deploys docker-compose application to remote host
+
+on:
+  workflow_call:
+    inputs:
+      ssh_host:
+        type: string
+        required: true
+        description: hostname of the remote docker host
+      ssh_user:
+        type: string
+        required: true
+        description: username used to authenticate to remote docker host
+      compose_file:
+        type: string
+        required: true
+        description: path to docker-compose file relative to repository root
+      compose_project_name:
+        type: string
+        required: true
+        description: name of the docker compose project
+    secrets:
+      ssh_private_key:
+        required: true
+        description: ssh private key used to authenticate to remote docker host
+      app_config_env:
+        required: true
+        description: .env file holding application configuration. Check docker-compose file for available variables.
+
+
+env:
+  DOCKER_CONTEXT_NAME: docker-remote-host   # name of the docker context used to connect to remote host
+
+jobs:
+  deploy-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: add ssh private key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key:${{ secrets.ssh_private_key }}
+
+      - name: create docker context
+        run: |
+          docker context create ${{ env.DOCKER_CONTEXT_NAME }} --docker "host=ssh://${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
+
+      - name: docker login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: upgrade service
+        run: |
+          # use docker context
+          docker context use ${{ env.DOCKER_CONTEXT_NAME }}
+
+          # write app config to local .env file
+          echo "${{ secrets.app_config_env }}" > .env
+
+          # todo: delete after debugging
+          cat .env
+
+          # todo: either remove after debugging or maks secret values
+          docker compose -f ${{ inputs.compose_file }} -p ${{ inputs.compose_project_name }} --env-file .env config
+
+          # run application
+          docker compose -f ${{ inputs.compose_file }} -p ${{ inputs.compose_project_name }} --env-file .env up -d --force-recreate
