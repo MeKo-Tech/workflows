@@ -76,15 +76,14 @@ jobs:
 
       - name: upgrade service
         run: |
+          echo "deploy version ${{ inputs.image_tag }} to ${{ inputs.ssh_host }}"
+
           # use docker context
           docker context use ${{ env.DOCKER_CONTEXT_NAME }}
 
           # write app config to local .env file
           echo "${{ secrets.env_file_data }}" > .env
 
-          # todo: delete after debugging
-          echo ".env:"
-          cat .env
 
           # todo: either remove after debugging or maks secret values
           echo "docker compose config:"
