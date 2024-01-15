@@ -1,6 +1,18 @@
 on:
   workflow_call:
     inputs:
+      source_ref:
+        type: string
+        default: ${{ github.event.ref }}
+        description: source ref to deploy from
+      image_name:
+        type: string
+        required: true
+        description: name of the docker image to validate
+      delete_invalid_tags:
+        type: boolean
+        default: true
+        description: whether to automatically delete source_ref in case it is a tag and does not refer to a valid release (e.g. STAGING nor refering to a released commit)
       ssh_host:
         type: string
         required: true
@@ -26,9 +38,34 @@ on:
         description: .env file holding application configuration. Check docker-compose file for available variables.
 
 jobs:
+  is_released:
+    uses: ./.github/workflows/is_released.yml
+    with:
+      source_ref: ${{ inputs.source_ref }}
+      image_validate: true
+      image_name: ${{ inputs.image_name }}
+
+  delete_invalid_tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+      - is_released
+    if: ${{ failure() && inputs.delete_invalid_tags && startsWith(inputs.source_ref, 'refs/tags/') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+      - run: |
+          echo "delete ${{ inputs.source_ref }} from remote"
+          git push --delete origin ${{ inputs.source_ref }}  
+
   docker-compose-up:
     uses: ./.github/workflows/docker-compose-up.yml
+    needs: is_released
     with:
+      source_ref: ${{ inputs.source_ref }}
       ssh_host: ${{ inputs.ssh_host }}
       ssh_user: ${{ inputs.ssh_user }}
       compose_file: ${{ inputs.compose_file }}
