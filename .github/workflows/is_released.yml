@@ -22,6 +22,10 @@ on:
         type: string
         description: 'name of the Docker image to check (must include package name, e.g. primoxo/preview-generator)'
 
+    outputs:
+      version_tag:
+        description: the version which is used to tag the GitHub Release and the Docker Image
+        value: ${{ jobs.is_released.outputs.version_tag }}
 
 jobs:
   is_released:
@@ -29,6 +33,8 @@ jobs:
     permissions:
       contents: read
       packages: read
+    outputs:
+      version_tag: ${{ steps.release_tag.outputs.VERSION_TAG }}
     steps:
       - name: checkout repository
         uses: actions/checkout@v4

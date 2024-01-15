@@ -70,6 +70,7 @@ jobs:
       ssh_user: ${{ inputs.ssh_user }}
       compose_file: ${{ inputs.compose_file }}
       compose_project_name: ${{ inputs.compose_project_name }}
+      image_tag: ${{ needs.is_released.outputs.version_tag }}
     secrets:
       ssh_private_key: ${{ secrets.ssh_private_key }}
       env_file_data: ${{ secrets.env_file_data }}

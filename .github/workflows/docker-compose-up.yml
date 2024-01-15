@@ -23,6 +23,10 @@ on:
         type: string
         required: true
         description: name of the docker compose project
+      image_tag:
+        type: string
+        required: true
+        description: tag of the docker image to deploy
     secrets:
       ssh_private_key:
         required: true
@@ -84,7 +88,17 @@ jobs:
 
           # todo: either remove after debugging or maks secret values
           echo "docker compose config:"
-          docker compose -f ${{ inputs.compose_file }} -p ${{ inputs.compose_project_name }} --env-file .env config
+          docker compose -f ${{ inputs.compose_file }}\
+            -p ${{ inputs.compose_project_name }}\
+            -e IMAGE_TAG=${{ inputs.image_tag }}\
+            --env-file .env\
+            config
 
           # run application
-          docker compose -f ${{ inputs.compose_file }} -p ${{ inputs.compose_project_name }} --env-file .env up -d --force-recreate
+          #   environment variables are passed via .env file
+          #   IMAGE_TAG variable is used to specify the tag for the docker image. This value is specified with the -e flag and takes precedence over .env file
+          docker compose -f ${{ inputs.compose_file }}\
+            -p ${{ inputs.compose_project_name }}\
+            -e IMAGE_TAG=${{ inputs.image_tag }}\
+            --env-file .env\
+             up -d --force-recreate
