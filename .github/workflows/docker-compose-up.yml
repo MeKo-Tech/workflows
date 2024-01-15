@@ -84,6 +84,13 @@ jobs:
           #  secrets.env_file_data will be expanded, but variables in the string ($) will not be substituted
           echo '${{ secrets.env_file_data }}' > .env
 
+          # remove blank lines
+          sed -i "/^[[:space:]]*$/d" .env
+
+          # remove double quotes around variable values if there are any (required to prevent something like VAR_NAME='"VALUE"')
+          sed -i 's/="/=/' .env
+          sed -i 's/"$//' .env
+
           # set env values in single quotes
           #   .env file format must be VAR_NAME=VALUE and will be replaced by VAR_NAME='VALUE'
           sed -i "s/=/='/" .env
