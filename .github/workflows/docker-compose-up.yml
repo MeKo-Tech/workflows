@@ -99,5 +99,5 @@ jobs:
           IMAGE_TAG=${{ inputs.image_tag }} \
           docker compose -f ${{ inputs.compose_file }} \
             -p ${{ inputs.compose_project_name }} \
-            --env-file .en v\
+            --env-file .env \
              up -d --force-recreate
