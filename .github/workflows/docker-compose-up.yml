@@ -87,17 +87,17 @@ jobs:
 
           # todo: either remove after debugging or maks secret values
           echo "docker compose config:"
-          docker compose -f ${{ inputs.compose_file }}\
-            -p ${{ inputs.compose_project_name }}\
-            -e IMAGE_TAG=${{ inputs.image_tag }}\
-            --env-file .env\
+          IMAGE_TAG=${{ inputs.image_tag }} \
+          docker compose -f ${{ inputs.compose_file }} \
+            -p ${{ inputs.compose_project_name }} \
+            --env-file .env \
             config
 
           # run application
           #   environment variables are passed via .env file
-          #   IMAGE_TAG variable is used to specify the tag for the docker image. This value is specified with the -e flag and takes precedence over .env file
-          docker compose -f ${{ inputs.compose_file }}\
-            -p ${{ inputs.compose_project_name }}\
-            -e IMAGE_TAG=${{ inputs.image_tag }}\
-            --env-file .env\
+          #   IMAGE_TAG variable is used to specify the tag for the docker image. Substitution from env variables takes precedence over .env file
+          IMAGE_TAG=${{ inputs.image_tag }} \
+          docker compose -f ${{ inputs.compose_file }} \
+            -p ${{ inputs.compose_project_name }} \
+            --env-file .en v\
              up -d --force-recreate
