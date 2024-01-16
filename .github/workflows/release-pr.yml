@@ -47,7 +47,7 @@ jobs:
       # To avoid race conditions a delay is added to make sure `release` runs first to success before trying to create a release PR.cancel-timeout-minutes.
       # Alternatively, concurrent job execution can be avoided by 
       - name: delay
-        run: sleep ${{ inputs.delay }}}
+        run: sleep ${{ inputs.delay }}
 
       - uses: google-github-actions/release-please-action@v4
         with:  
