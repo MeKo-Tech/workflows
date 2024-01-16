@@ -29,6 +29,10 @@ on:
         type: string
         description: 'path to release-please manifest file'
         default: .release-please-manifest.json
+      delay:
+        type: number
+        description: delays workflow execution by the given number of seconds
+        default: 30
 
 jobs:
   release-pr:
@@ -37,6 +41,14 @@ jobs:
       contents: write           # the action creates and pushes a new branch for the changes which are introduced with the PR
       pull-requests: write
     steps:
+
+      # release-please uses the GitHub GraphQL API to check for pending merged pull requests, and to check labels on these PRs.
+      # A race condition might occur in case release-please is concurrently used at another workflow (e.g. release.yml) to merge PRs and to create releases. In this case, duplicate release PRs might get created by this action.
+      # To avoid race conditions a delay is added to make sure `release` runs first to success before trying to create a release PR.cancel-timeout-minutes.
+      # Alternatively, concurrent job execution can be avoided by 
+      - name: delay
+        run: sleep ${{ inputs.delay }}}
+
       - uses: google-github-actions/release-please-action@v4
         with:  
           token: ${{ secrets.GITHUB_TOKEN }}
