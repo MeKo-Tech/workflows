@@ -1,0 +1,12 @@
+on:
+  push:
+    branches:
+      - main
+
+name: release
+
+jobs:
+  release-build-push:
+    uses: Primoxo/workflows/.github/workflows/release.yml@main
+    with:
+      target_branch: main                     # must match release-PR target_branchg

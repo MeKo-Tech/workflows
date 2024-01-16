@@ -1,0 +1,56 @@
+on:
+  push:
+    tags:
+      - STAGING
+      - PRODUCTION
+  
+name: deploy
+
+jobs:
+  deploy-staging:
+    if: ${{ github.event.ref == 'refs/tags/STAGING' }}
+    uses: Primoxo/workflows/.github/workflows/deploy-docker.yml@main
+    with:
+      image_name: primoxo/preview-generator
+      delete_invalid_tags: true
+      ssh_host: ${{ vars.STAGING_DEPLOY_SSH_HOST }}
+      ssh_user: ${{ vars.STAGING_DEPLOY_SSH_USER }}
+      compose_file: ./deployment/docker-compose.yml       # path to docker-compose file which is used for deployment (relative to repository root)
+      compose_project_name: preview-generator-staging     # name of the docker-compose project
+    secrets:
+      ssh_private_key: ${{ secrets.STAGING_DEPLOY_SSH_PRIVATE_KEY}}
+      # use yaml multiline string to write all app configurations in env-file format into secret
+      # These environemnt variables are substituted by the docker-compose file which is used for the deployment. The file must be specified either to make use of env vars, or to pass variables to the container
+      env_file_data: |
+        NETWORK_NAME="primoxo-stack-default"
+        CONFIG_SERVER_HOST=${{ vars.STAGING_CONFIG_SERVER_HOST }}
+        CONFIG_SERVER_BASIC_AUTH_USERS=${{ secrets.STAGING_CONFIG_SERVER_BASIC_AUTH_USERS }}
+        CONFIG_SERVER_CORS_ALLOW_ORIGINS=${{ vars.STAGING_CONFIG_SERVER_CORS_ALLOW_ORIGINS }}
+        CONFIG_CLIENT_NHOST_HASURA_ADMIN_SECRET=${{ secrets.STAGING_CONFIG_CLIENT_NHOST_HASURA_ADMIN_SECRET }}
+        CONFIG_CLIENT_NHOST_STORAGE_URL=${{ vars.STAGING_CONFIG_CLIENT_NHOST_STORAGE_URL }}
+        CONFIG_CLIENT_NHOST_WEBHOOK_SECRET=${{ secrets.STAGING_CONFIG_CLIENT_NHOST_WEBHOOK_SECRET }}
+        CONFIG_CLIENT_NHOST_METADATA_URL=${{ vars.STAGING_CONFIG_CLIENT_NHOST_METADATA_URL }}
+
+
+  deploy-production:
+    if: ${{ github.event.ref == 'refs/tags/PRODUCTION' }}
+    uses: Primoxo/workflows/.github/workflows/deploy-docker.yml@main
+    with:
+      image_name: primoxo/preview-generator
+      delete_invalid_tags: true
+      ssh_host: ${{ vars.PRODUCTION_DEPLOY_SSH_HOST }}
+      ssh_user: ${{ vars.PRODUCTION_DEPLOY_SSH_USER }}
+      compose_file: ./deployment/docker-compose.yml
+      compose_project_name: preview-generator-production
+    secrets:
+      ssh_private_key: ${{ secrets.PRODUCTION_DEPLOY_SSH_PRIVATE_KEY}}
+      env_file_data: |
+        NETWORK_NAME="primoxo-stack-default"
+        CONFIG_SERVER_HOST=${{ vars.PRODUCTION_CONFIG_SERVER_HOST }}
+        CONFIG_SERVER_BASIC_AUTH_USERS=${{ secrets.PRODUCTION_CONFIG_SERVER_BASIC_AUTH_USERS }}
+        CONFIG_SERVER_CORS_ALLOW_ORIGINS=${{ vars.PRODUCTION_CONFIG_SERVER_CORS_ALLOW_ORIGINS }}
+        CONFIG_CLIENT_NHOST_HASURA_ADMIN_SECRET=${{ secrets.PRODUCTION_CONFIG_CLIENT_NHOST_HASURA_ADMIN_SECRET }}
+        CONFIG_CLIENT_NHOST_STORAGE_URL=${{ vars.PRODUCTION_CONFIG_CLIENT_NHOST_STORAGE_URL }}
+        CONFIG_CLIENT_NHOST_WEBHOOK_SECRET=${{ secrets.PRODUCTION_CONFIG_CLIENT_NHOST_WEBHOOK_SECRET }}
+        CONFIG_CLIENT_NHOST_METADATA_URL=${{ vars.PRODUCTION_CONFIG_CLIENT_NHOST_METADATA_URL }}
+

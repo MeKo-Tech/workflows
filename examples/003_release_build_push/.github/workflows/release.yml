@@ -1,0 +1,16 @@
+on:
+  push:
+    branches:
+      - main
+
+name: release
+
+jobs:
+  # this workflow checks out the gitref which triggered the workflow and builds and pushes a docker image
+  release-build-push:
+    uses: Primoxo/workflows/.github/workflows/release-build-push.yml@main
+    with:
+      # source_ref: <REF>                     # git ref to checkout and build the image from. Defaults to ref that triggered the workflow
+      target_branch: main                     # must match release-PR target_branch
+      image_name: primoxo/preview-generator   # name of the image to push to ghcr.io
+      # image_is_latest: true                 # whether to tag the image as latest. Defaults to true
