@@ -12,13 +12,13 @@ In principle, all workflows which are implemented at this repo can be used to si
 
 Check [examples](https://github.com/Primoxo/workflows/tree/main/examples) for further details how to configure complete DevOps workflows
 
-## Using workflows from this repository
+## Using Workflows from this Repository
 
 ### Github Settings
 1. Make sure THIS repository can be used for workflows which are specified at other repositories in this organization. Navigate to `repository settings` -> `Actions` -> `General` and select `Accessible from repositories in the organization`.
 2. Configure the referencing repository to use workflows from other repos in the organization. For the other repository navigate to `repository settings` -> `Actions` -> `General` and select `Allow all actions and reusable workflows` or `Allow Primoxo actions and reusable workflows`
 
-### Using in a workflow
+### Using in a Workflow
 
 Workflows from this repository can be called in workflow files with the `uses` keyword:
 ```yaml	
@@ -64,7 +64,7 @@ jobs:
 
 Check the [official Documenation](https://docs.github.com/de/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow) for further details.
 
-## Basic knowledge and Limitations
+## Basic Knowledge and Limitations
 
 * All workflows which are implemented at this repo use [Automatic Token Authentication](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) to connect to the GitHub API and GitHub Container Registry. 
   * Reusable workflows run with the context of the calling workflow and, hence, use the context [github](https://docs.github.com/de/actions/learn-github-actions/contexts#github-context) and `secrets.GITHUB_TOKEN` (for automatic authentication) for that workflow. The automatically generated access token grants access only to the calling (!) repository, i.e. to the repostiry, at which the workflow file is specified, which calls the reusable workflows from this repository.
