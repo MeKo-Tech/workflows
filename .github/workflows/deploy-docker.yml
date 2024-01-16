@@ -1,34 +1,47 @@
+# This workflow can be used to deploy a released git ref to a remote docker host
+# The workflow uses SSH to connect to the remote host and uses `docker compose up --force-recreate` to install or upgrade the application
+#
+# App-specific configuration settings
+#   App configurations can be passed to the secret `env_file_data`, which will be read into an .env file, which is substituted when running `docker compose up`.
+#   The docker-compose file, which is used for app installation, must make proper use of environment variables wich are passed this way (e.g. by passing variable values to the application container)
+#   At the calling workflow, the `env_file_data` secret can be defined as a multiline string (https://yaml-multiline.info/). Multiple GitHub secrets, which are available to the calling workflow, can be passed into the single secret this way
+
+
 on:
   workflow_call:
     inputs:
       source_ref:
         type: string
         default: ${{ github.event.ref }}
-        description: source ref to deploy from
+        description: Source ref to deploy from. This can refer to a commit, branch or tag. Defaults to git ref, which triggered the calling workflow
       image_name:
         type: string
         required: true
-        description: name of the docker image to validate
+        description: Name of the docker image. This value is used to check, whether a docker image for this repo has been pushed to GitHub Packages
       delete_invalid_tags:
         type: boolean
         default: true
-        description: whether to automatically delete source_ref in case it is a tag and does not refer to a valid release (e.g. STAGING nor refering to a released commit)
+        description: Whether to automatically delete source_ref in case it does not refer to a valid release (e.g. STAGING nor refering to a released commit). Only executed in case ref is a git tag
       ssh_host:
         type: string
         required: true
-        description: hostname of the remote docker host
+        description: Name of the remote docker host (e.g. ip adress)
       ssh_user:
         type: string
         required: true
-        description: username used to authenticate to remote docker host
+        description: Username used to authenticate to remote docker host
       compose_file:
         type: string
         required: true
-        description: path to docker-compose file relative to repository root
+        description: Path to the docker-compose file which is used to deploy the application. Must be relative to repository root
       compose_project_name:
         type: string
         required: true
-        description: name of the docker compose project
+        description: Name of the docker compose project
+      prune_unused_images:
+        type: boolean
+        default: true
+        description: Whether to automatically prune unused images on the remote docker host
     secrets:
       ssh_private_key:
         required: true
@@ -38,6 +51,7 @@ on:
         description: .env file holding application configuration. Check docker-compose file for available variables.
 
 jobs:
+  # validates whether soruce_ref corresponds to a commit witg a valid release
   is_released:
     uses: ./.github/workflows/is_released.yml
     with:
@@ -45,6 +59,7 @@ jobs:
       image_validate: true
       image_name: ${{ inputs.image_name }}
 
+  # delete invalid tags which do not reference a release
   delete_invalid_tag:
     runs-on: ubuntu-latest
     permissions:
@@ -61,6 +76,7 @@ jobs:
           echo "delete ${{ inputs.source_ref }} from remote"
           git push --delete origin ${{ inputs.source_ref }}  
 
+  # deploy application to remote docker host
   docker-compose-up:
     uses: ./.github/workflows/docker-compose-up.yml
     needs: is_released
@@ -74,3 +90,14 @@ jobs:
     secrets:
       ssh_private_key: ${{ secrets.ssh_private_key }}
       env_file_data: ${{ secrets.env_file_data }}
+
+  # prune unused images from remote docker host (e.g. to free disk space)
+  docker-image-prune:
+    if: ${{ inputs.prune_unused_images }}
+    uses: ./.github/workflows/docker-image-prune.yml
+    needs: docker-compose-up
+    with:
+      ssh_host: ${{ inputs.ssh_host }}
+      ssh_user: ${{ inputs.ssh_user }}
+    secrets:
+      ssh_private_key: ${{ secrets.ssh_private_key }}

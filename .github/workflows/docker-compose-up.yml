@@ -33,7 +33,7 @@ on:
         description: ssh private key used to authenticate to remote docker host
       env_file_data:
         required: true
-        description: .env file content holding application configuration. Check docker-compose file for available variables.
+        description: .env file content holding application configuration. Check docker-compose file for available variables. Values must not contain single quotes
 
 env:
   DOCKER_CONTEXT_NAME: docker-remote-host   # name of the docker context used to connect to remote host

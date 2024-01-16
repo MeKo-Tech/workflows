@@ -1,0 +1,47 @@
+# removes unused images from remote docker host
+
+on:
+  workflow_call:
+    inputs:
+      ssh_host:
+        type: string
+        required: true
+        description: hostname of the remote docker host
+      ssh_user:
+        type: string
+        required: true
+        description: username used to authenticate to remote docker host
+      until:
+        type: number
+        default: 168
+        description: prune all images older than this number of hours. Defaults to one week
+    secrets:
+      ssh_private_key:
+        required: true
+        description: ssh private key used to authenticate to remote docker host
+  
+jobs:
+  docker-image-prune:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: add ssh private key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.ssh_private_key }}
+  
+      # Todo: for security hardening, the hosts server public key should explicity be specified (e.g. fro a repository variable) instead of using ssh-keyscan
+      - name: add ssh known host
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ inputs.ssh_host }} >> ~/.ssh/known_hosts
+  
+      - name: prune docker images
+        run: |
+          # create docker context to connect to remote host
+          docker context create docker-remote-host --docker "host=ssh://${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
+          # use docker context
+          docker context use docker-remote-host
+
+          echo "remove all unused images older than ${{ inputs.until }} hours from remote host ${{ inputs.ssh_host }}"
+          docker image prune --all --force --filter "until=${{ inputs.until }}h"
