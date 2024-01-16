@@ -1,4 +1,24 @@
-# deploys docker-compose application to remote host
+# The workflow deploys a docker-compose application to a remote host via ssh.
+# 
+# The workflow uses a docker context to connect to the remote host. 
+# The docker-compose and other required files are copied to the CI runner (by checking out the repo), but not copied to the remote host.
+# The application is upgraded by running docker-compose up directly at the CI runner. The Docker context is used to connect to the Docker Daemon at the remote host
+#
+# In general, application configurations are passed from environment variables when running docker-compoes up
+# The docker-compose file must be written in a way that these env variables are used correctly (e.g. by substituting variables within docker-compose.yml, or by passing variables to the container).
+# Environment variables CANNOT be passed from the calling workflow to the reusable workflow which is implemented in this file.
+# As a workaround, the calling workflow must provide the secret env_file_data which holds the application configuration in a .env file format. The data is sourced before running docker-compose up.
+# The calling workflow can use yaml syntac for multi-line strings to merge multiple variables into that secret (see examples)
+#
+# Limitations
+#   The special environment variable `IMAGE_TAG` variable must be used to specify the tag / version of the docker image to deploy. 
+#     The docker-compose file must be implemented such that this variable is correctly interpolated
+#   The variable value is read from `inputs.image_tag` and overwrites any value `IMAGE_TAG=<TAG>` which might be specified in inputs.env_file_data
+#   `inputs.image_tag` should be used to pass the correct application version from outputs of previous workflows (e.g. release.yml)
+#
+# further reading:
+#   https://docs.docker.com/compose/environment-variables/set-environment-variables/
+
 
 on:
   workflow_call:
@@ -6,31 +26,31 @@ on:
       source_ref:
         type: string
         default: ${{ github.event.ref }}
-        description: git ref to deploy
+        description: Git ref to read docker-compose file from
       ssh_host:
         type: string
         required: true
-        description: hostname of the remote docker host
+        description: Hostname of the remote docker host
       ssh_user:
         type: string
         required: true
-        description: username used to authenticate to remote docker host
+        description: Username used to authenticate to remote docker host
       compose_file:
         type: string
         required: true
-        description: path to docker-compose file relative to repository root
+        description: Path to docker-compose file relative to repository root
       compose_project_name:
         type: string
         required: true
-        description: name of the docker compose project
+        description: Name of the docker compose project
       image_tag:
         type: string
         required: true
-        description: tag of the docker image to deploy
+        description: Tag of the docker image to deploy
     secrets:
       ssh_private_key:
         required: true
-        description: ssh private key used to authenticate to remote docker host
+        description: Ssh private key used to authenticate to remote docker host
       env_file_data:
         required: true
         description: .env file content holding application configuration. Check docker-compose file for available variables. Values must not contain single quotes
@@ -49,7 +69,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_ref }}
-          fetch-depth: 1
+          fetch-depth: 1  # fetch only last comment
 
       - name: add ssh private key
         uses: webfactory/ssh-agent@v0.8.0
@@ -84,21 +104,18 @@ jobs:
           #  secrets.env_file_data will be expanded, but variables in the string ($) will not be substituted
           echo '${{ secrets.env_file_data }}' > .env
 
-          # remove blank lines
+          # remove blank lines from env file
           sed -i "/^[[:space:]]*$/d" .env
-
           # remove double quotes around variable values if there are any (required to prevent something like VAR_NAME='"VALUE"')
           sed -i 's/="/=/' .env
           sed -i 's/"$//' .env
-
-          # set env values in single quotes
+          # wrap env values in single quotes to prevent furhter variable substitutation when calling docker-compose up
           #   .env file format must be VAR_NAME=VALUE and will be replaced by VAR_NAME='VALUE'
           sed -i "s/=/='/" .env
           sed -i "s/$/'/" .env
 
           # todo: remove after debugging
           cat .env
-
 
           # todo: either remove after debugging or maks secret values
           echo "docker compose config:"
@@ -108,7 +125,7 @@ jobs:
             --env-file .env \
             config
 
-          # run application
+          # install or upgrade application
           #   environment variables are passed via .env file
           #   IMAGE_TAG variable is used to specify the tag for the docker image. Substitution from env variables takes precedence over .env file
           IMAGE_TAG=${{ inputs.image_tag }} \

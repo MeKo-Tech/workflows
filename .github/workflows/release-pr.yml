@@ -1,17 +1,23 @@
-# this action creates a release-pr for the target branch in case deployable units are present at the source ref
-# deployable uints are read from conventional commit messages
+# This Workflow creates a new branch with code changes required for a version bump (e.g incremenmt app version in manifest files) as well as a PR to merge these changes to the target branch.
+# The version bump (=change of semantic version number) is automatically determined from commit history at the source ref which triggered the workflow. 
+# Changes are read from conventional commit messages. A release-PR is created only in case "releasable units" have been pushed to git ref.
+# The workflow also creates and updates an auto-generated changelog. The format of the changelog is specified at the config_file. Namely, the config file can be used to specify a mepping between conventional commits and changelog sections. Each conventional commit, which will be written to the changelog, is considered to be a releasable unit and, thus, results in a version bump.
 #
-# the release pr will:
+# The auto-generated Release PR will:
 # - increment the application version at `.release-please-manifest.json`
 # - increment the application version at framework-specific files (e.g. `package.json`, `pyproject.toml`, `go.mod`,...)
 # - update `CHANGELOG.md` and include conventional commit messages
 #
-# this action uses GITHUB_TOKEN for automatic authentication. -> PRs and branches which are created by this workflow will not trigger any other workflows.
+# This workflow is NOT configured to create releases (see release.yml) (although release-please is capable of doing with a singe action). This is a design decision aiming to improve readability by allowing to separate the workflows for release-pr creation and for release/build/push
 #
-# required permissions:
-#   contents: write
-#   pull-requests: write
-
+# Limitations:
+#   * release_semver is set only in case a root package (package path: ".") is specified in release-please config file. This workflow needs to be modified in case release-please should be used to release non-root packages (e.g. in a monorepo)
+#   * this workflow uses the default GITHUB_TOKEN for authentication and will not trigger any workflow for resources which are created (e.g. for releases or tags). In case this is required, pass a custom access token which is generated for a GitHub App to the `release` step. See https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow
+#   * unexpected behaviour might result in case this workflow runs concurrently with ohter workflows which use the release-please action due to race conditions
+#
+# further reading:
+#   * https://github.com/googleapis/release-please
+#   * https://github.com/google-github-actions/release-please-action
 name: release-pr
 
 on:
@@ -55,4 +61,4 @@ jobs:
           target-branch: ${{ inputs.target_branch }}
           config-file: ${{ inputs.config_file }}
           manifest-file: ${{ inputs.manifest_file }}
-          skip-github-release: true     # configure release-please action to only create PRs
+          skip-github-release: true     # only create release-PRs and branches

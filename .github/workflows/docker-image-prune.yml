@@ -1,4 +1,5 @@
-# removes unused images from remote docker host
+# This workflow removes unused images from remote docker host
+# The workflow can be used to free disk space after a deployment
 
 on:
   workflow_call:

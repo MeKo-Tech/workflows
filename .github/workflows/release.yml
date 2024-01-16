@@ -1,11 +1,19 @@
-# This action tags the commit with a Semver number and creates a GitHub release wich references this tag
+# This workflow uses release-please to create a releases and version-bumps:
+#   * creates a semver tag for the current commit
+#   * creates a GitHub release for the tag
+#   * updates release-pr: adds comment with reference to GitHub Release and adds label `autorelease: tagged`
+# 
+# This workflow is NOT configured to create and update release-prs (see release-pr.yml) (although release-please is capable of doing with a singe action). This is a design decision aiming to improve readability by allowing to separate the workflows for release-pr creation and for release/build/push
 #
 # Limitations:
-#   release_semver is set only in case a root package (package path: ".") is specified in release-please config file
-#   this workflow uses the default GITHUB_TOKEN for authentication and will not trigger any workflow for resources which are created (e.g. for releases or tags). In case this is required, pass a custom access token to the `release` step
+#   * release_semver is set only in case a root package (package path: ".") is specified in release-please config file. This workflow needs to be modified in case release-please should be used to release non-root packages (e.g. in a monorepo)
+#   * this workflow uses the default GITHUB_TOKEN for authentication and will not trigger any workflow for resources which are created (e.g. for releases or tags). In case this is required, pass a custom access token which is generated for a GitHub App to the `release` step. See https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow
+#   * unexpected behaviour might result in case this workflow runs concurrently with ohter workflows which use the release-please action due to race conditions
 #
-# required permissions:
-#   contents: write
+# further reading:
+#   * https://github.com/googleapis/release-please
+#   * https://github.com/google-github-actions/release-please-action
+
 
 name: release
 
@@ -14,35 +22,34 @@ on:
     inputs:
       target_branch:
         type: string
-        description: 'target branch for release pull requests'
+        description: target branch. Must match target branch for release PRs
         default: main
       config_file:
         type: string
-        description: 'path to release-please config file'
+        description: path to release-please config file. Defaults to release-please-config.json
         default: release-please-config.json
       manifest_file:
         type: string
-        description: 'path to release-please manifest file'
+        description: path to release-please manifest file. Defaults to .release-please-manifest.json
         default: .release-please-manifest.json
 
     outputs:
       release_created: 
-        description: 'true if a release was created by this workflow, false otherwise'
+        description: true if a release was created by this workflow, false otherwise
         value: ${{ jobs.release.outputs.release_created }}
       release_semver:
-        description: 'Semver number of the release created by this workflow. Empty in case no release was created'
+        description: Semver number of the release created by this workflow. Empty in case no release was created
         value: ${{ jobs.release.outputs.release_semver }}
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    # permissions take only effect for authentication with GITHUB_TOKEN
     permissions:
       contents: write       # writes release and tag
-      pull-requests: write  # reads PR and adds comments
+      pull-requests: write  # reads und updates PR comments and labels
     outputs:
       release_created: ${{ steps.release.outputs.release_created }} 
-      release_semver: '${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}'
+      release_semver: '${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}'  # See https://github.com/google-github-actions/release-please-action?tab=readme-ov-file#root-component-outputs
     steps:
       - uses: google-github-actions/release-please-action@v4
         id: release
@@ -50,4 +57,4 @@ jobs:
           target-branch: ${{ inputs.target_branch }}
           config-file: ${{ inputs.config_file }}
           manifest-file: ${{ inputs.manifest_file }}
-          skip-github-pull-request: true     # configure release-please action to only create releases
+          skip-github-pull-request: true     # only create releases

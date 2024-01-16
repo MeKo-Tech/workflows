@@ -1,8 +1,5 @@
-# builds docker image from git ref and pushes to GitHub Package
-#
-# required permissions:
-#   contents: read
-#   packages: write
+# This workflow builds a Docker image from a git ref and pushes it to GitHub Container Registry (ghcr.io) / GitHub Packages
+# Image tags are not automatically created. Instead, the input parameter `image_tag` must be provided when calling the workflow. This can be used to pass the application Semver from the output of a previous workflow (e.g. release.yml)
 
 name: docker build push
 
@@ -11,34 +8,29 @@ on:
     inputs:
       source_ref:
         type: string
-        description: 'git ref to build'
+        description: Git ref to build
         default: ${{ github.event.ref }}    # defaults to ref that triggered the (caller) worfklow
       image_name:
         type: string
-        description: 'name of the docker image (must include package name, e.g. primoxo/preview-generator)'
+        description: Name of the docker image (must include package name, e.g. primoxo/preview-generator)
         required: true
       image_tag:
         type: string
-        description: 'tag to be added to the image'
+        description: Tag to be added to the image
         required: true
       image_is_latest:
         type: boolean
-        description: 'defines whether tag "latest" is added to the image'
+        description: Defines whether tag "latest" is added to the pushed image. This will cause "latest" to reference the image which has been pushed last (-> "latest" might not correspond to image with highest Semver)
         default: true
     
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
-    # permissions for autmatic authentication with github.token
     permissions:
       contents: read
       packages: write
-
     steps:
-      # checkout current git repository (from caller workflow) at ref
-      # by default, this action uses gtihub.token for authentication, which is passed from the calling workflow. Access credentials are stored to local git config and can be used for git commands running in subsequent steps
       - name: checkout repository
         uses: actions/checkout@v4
         with:
@@ -47,7 +39,7 @@ jobs:
       
       # extract docker metadata from Git reference and GitHub event
       # This action is capable of tagging docker images for a variety of GitHub events (e.g. tag image tag from branch names, git tags, or PR names)
-      # We DO NOT take use of the capability and instead explicitly define the image tags which should be added (`type=raw`)
+      # We DO NOT take use of the capability and instead explicitly define tags which should be added (with `type=raw,value=<TAG_VALUE>`)
       # This is because we want to take control over the images which are created. (DO NOT create images for just any git ref or tag)
       # The logic, at which point in time images are created is left to the calling workflows (e.g. by setting appropriate triggers for these workflows). Calling workflows should explicitly define a tag for the docker image
       - name: extract docker metadata

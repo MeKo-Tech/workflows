@@ -1,9 +1,9 @@
-# checks whether git ref points to a commit which has been released.
-# For a released commit, there must be a git tag with a semantic version number, a GitHub release which refernces this tag (-> see release workflow) and optionally a Docker image with the same tag (-> see release-build-push) workflow
-#
-# required permissions
-#   contents: read
-#   packages: read
+# This workflow checks whether a git ref corresponds to a commit which as been released (see release.yml). The workflow can be used prevent deployment/rollout of source code, which has not been reeleased yet and which might be missing required artefacts (e.g. Docker Images)
+# 
+# A git ref is considered to have been released, if
+#   * there is a git tag for the same commit, and the tag is a valid semantic version number (e.g. 1.2.3) (CAVE: no leading `v` in tag allowed)
+#   * there is a GitHub release which has been published and which references the same tag
+#   * (optional) a Docker image with the same tag (Semver) exists at GitHub Container Registry (ghcr.io) / GitHub Packages
 
 name: is released
 
@@ -16,11 +16,11 @@ on:
         default: ${{ github.event.ref }}    # defaults to ref that triggered the (caller) worfklow
       image_validate:
         type: boolean
-        description: 'whether to check if Docker image with matching tag exists'
+        description: whether to check if Docker image with matching tag exists
         default: true
       image_name:
         type: string
-        description: 'name of the Docker image to check (must include package name, e.g. primoxo/preview-generator)'
+        description: name of the Docker image to check (must include organization name, e.g. primoxo/preview-generator)
 
     outputs:
       version_tag:
@@ -31,8 +31,8 @@ jobs:
   is_released:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: read
+      contents: read  # required to checkout repository and read tags
+      packages: read  # required to authenticate to ghcr.io and read images
     outputs:
       version_tag: ${{ steps.release_tag.outputs.VERSION_TAG }}
     steps:
@@ -47,7 +47,7 @@ jobs:
       - name: has Semver release tag
         id: release_tag
         run: |
-          # get all tags for git ref and check whether there is a tag which matches the Semver format. Those tags are automatically generated for valid releases
+          # get all tags for git ref and check whether there is a tag which matches the Semver format
           SEMVER_TAG_CNT=$(git tag --points-at ${{ inputs.source_ref }} | (grep -E '[0-9]{1,}.[0-9]{1,}.[0-9]{1,}' --count || true) )
 
           if [ "${SEMVER_TAG_CNT}" -lt 1 ]; then

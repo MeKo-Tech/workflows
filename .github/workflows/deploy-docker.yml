@@ -1,11 +1,7 @@
-# This workflow can be used to deploy a released git ref to a remote docker host
-# The workflow uses SSH to connect to the remote host and uses `docker compose up --force-recreate` to install or upgrade the application
-#
-# App-specific configuration settings
-#   App configurations can be passed to the secret `env_file_data`, which will be read into an .env file, which is substituted when running `docker compose up`.
-#   The docker-compose file, which is used for app installation, must make proper use of environment variables wich are passed this way (e.g. by passing variable values to the application container)
-#   At the calling workflow, the `env_file_data` secret can be defined as a multiline string (https://yaml-multiline.info/). Multiple GitHub secrets, which are available to the calling workflow, can be passed into the single secret this way
-
+# This workflow deploys a released application version to a remote docker host
+# The workflow first validates whether the git ref corresponds to a released version and extracts the Semver for the release
+# The application is then installed on the remote host by calling the workflow docker-compose-up.yml with the current git ref and the Semver of the release. App configurations are passed from the workflow inputs
+# After successfull installation, unused images are pruned from the remote Docker host to free disk space
 
 on:
   workflow_call:
@@ -91,7 +87,7 @@ jobs:
       ssh_private_key: ${{ secrets.ssh_private_key }}
       env_file_data: ${{ secrets.env_file_data }}
 
-  # prune unused images from remote docker host (e.g. to free disk space)
+  # prune unused images from remote docker host
   docker-image-prune:
     if: ${{ inputs.prune_unused_images }}
     uses: ./.github/workflows/docker-image-prune.yml

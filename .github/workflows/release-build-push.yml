@@ -1,4 +1,7 @@
-# todo: add permissions and description / comments
+# This workflow generates GitHub releases and builds and pushes Docker Images after creating a release.
+# The workflow should be used in conjunction with `release-pr.yml` which generates release-PRs from conventional commits (which is required to create GitHub releases with release.yml)
+#
+# See `release.yml` and `docker-build-push.yml` for further details
 
 name: release-build-push
 
@@ -29,16 +32,22 @@ on:
 jobs:
   release:
     uses: ./.github/workflows/release.yml   # call workflow from this repo
+    permissions:
+      contents: write
+      pull-requests: write
     with:
       target_branch: ${{ inputs.target_branch }}
       config_file: ${{ inputs.config_file }}
       manifest_file: ${{ inputs.manifest_file }}
 
-  build-push:
+  docker-build-push:
     needs:
       - release
     if: ${{ needs.release.outputs.release_created }}
     uses: ./.github/workflows/docker-build-push.yml   # call workflow from this repo
+    permissions:
+      contents: read
+      packages: write
     with:
       image_name: ${{ inputs.image_name }}
       image_tag: ${{ needs.release.outputs.release_semver }}

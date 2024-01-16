@@ -1,31 +1,39 @@
-# this workflow creates a deploy branch from a tag
+# This workflow force-pushes a git ref to the target branch in case the git ref corresponds to a valid release
+# Use this workflow for automatic deployment with platforms, which deploy from branches (e.g. DigitalOcean App Platform, NHost)
+# 
+# CAVE: this will cause any changes at the target branch to be overwritten! The target branch might not be protected.
+
 
 on:
   workflow_call:
     inputs:
       source_ref:
         type: string
-        description: 'source ref to create branch from, e.g. tags/STAGING'
+        description: Source ref to create branch from, e.g. tags/STAGING
         required: true
       target_branch:
         type: string
-        description: 'target branch to create. Any changes from the source ref will be force-pushed to this branch'
+        description: Target branch to create. Any changes from the source ref will be force-pushed to this branch
         required: true
       image_validate:
         type: boolean
-        description: 'check whether a docker image exists for the release'
+        description: Check whether a docker image exists for the release. Set to "false" in case Docker Images are not created or not required for deployment
         default: true
       image_name:
         type: string
-        description: 'name of the docker image to validate'
+        description: Name of the Docker image to validate
       delete_invalid_tags:
         type: boolean
         default: true
-        description: 'whether to automatically delete source_ref in case it is a tag and does not refer to a valid release (e.g. STAGING nor refering to a released commit)'
+        description: Whether to automatically delete source_ref in case it is a tag and does not refer to a valid release (e.g. STAGING nor refering to a released commit)
 
 jobs:
+  # check whether the source_ref is a valid release
   is_released:
     uses: ./.github/workflows/is_released.yml
+    permissions:
+      contents: read
+      packages: read
     with:
       source_ref: ${{ inputs.source_ref }}
       image_validate: ${{ inputs.image_validate }}
@@ -38,6 +46,7 @@ jobs:
       contents: write
     needs:
       - is_released
+    # only run in case previous job failed, inputs.delete_invalid_tags is true and source_ref is a tag
     if: ${{ failure() && inputs.delete_invalid_tags && startsWith(inputs.source_ref, 'refs/tags/') }}
     steps:
       - name: Checkout
@@ -59,7 +68,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ inputs.source_ref }}
-          fetch-depth: 0
+          fetch-depth: 0                # fetch complete history
       - name: force-push branch
         run: |
           echo "Force-push ref \"${{ inputs.source_ref }}\" to branch \"${{ inputs.target_branch }}\""
