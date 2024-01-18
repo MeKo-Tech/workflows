@@ -22,6 +22,10 @@ on:
         type: boolean
         description: Defines whether tag "latest" is added to the pushed image. This will cause "latest" to reference the image which has been pushed last (-> "latest" might not correspond to image with highest Semver)
         default: true
+      checkout_submodules:
+        type: boolean
+        description: Whether to checkout git submodules or not for the build step of the docker image
+        default: false
     
 
 jobs:
@@ -36,6 +40,7 @@ jobs:
         with:
           ref: ${{ inputs.source_ref }}
           fetch-depth: 1                # only fetch last commit; no history
+          submodules: ${{ inputs.checkout_submodules }}
       
       # extract docker metadata from Git reference and GitHub event
       # This action is capable of tagging docker images for a variety of GitHub events (e.g. tag image tag from branch names, git tags, or PR names)
