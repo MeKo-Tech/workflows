@@ -28,6 +28,10 @@ on:
         type: boolean
         description: 'defines whether tag "latest" is added to the image'
         default: true
+      checkout_submodules:
+        type: boolean
+        description: Whether to checkout git submodules or not for the build step of the docker image
+        default: false
   
 jobs:
   release:
@@ -52,3 +56,4 @@ jobs:
       image_name: ${{ inputs.image_name }}
       image_tag: ${{ needs.release.outputs.release_semver }}
       image_is_latest: ${{ inputs.image_is_latest }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
