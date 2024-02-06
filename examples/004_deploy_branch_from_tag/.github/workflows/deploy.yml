@@ -11,7 +11,7 @@ jobs:
     # this workflows uses conditionals to merge deployment for staging and prod into a single file (and to branch based on tag number)
     # alternatively two separate workflow files can be implemented with triggers on tags `STAGING` and `PRODUCTION`, respectively
     if: ${{ github.event.ref == 'refs/tags/STAGING' }}
-    uses: Primoxo/workflows/.github/workflows/deploy-branch.yml@main
+    uses: MeKo-Tech/workflows/.github/workflows/deploy-branch.yml@main
     with:
       source_ref: ${{ github.event.ref }}
       target_branch: deployed_staging         # name of the target deploy branch (target for force-push)
@@ -21,7 +21,7 @@ jobs:
 
   deploy-production:
     if: ${{ github.event.ref == 'refs/tags/PRODUCTION' }}
-    uses: Primoxo/workflows/.github/workflows/deploy-branch.yml@main
+    uses: MeKo-Tech/workflows/.github/workflows/deploy-branch.yml@main
     with:
       source_ref: ${{ github.event.ref }}
       target_branch: deployed_production

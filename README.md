@@ -10,13 +10,13 @@ In principle, all workflows which are implemented at this repo can be used to si
 | deploy-branch.yml | Force-pushes a release from a git ref (e.g. a given tag or branch) to a dedicated deploy branch (e.g. `staging`) which can be tracked for automatic deployment with third-party app platforms |
 | deploy-docker.yml | Deploys a release from a git ref to a remote host using Docker Compose and SSH |
 
-Check [examples](https://github.com/Primoxo/workflows/tree/main/examples) for further details how to configure complete DevOps workflows
+Check [examples](https://github.com/MeKo-Tech/workflows/tree/main/examples) for further details how to configure complete DevOps workflows
 
 ## Using Workflows from this Repository
 
 ### Github Settings
 1. Make sure THIS repository can be used for workflows which are specified at other repositories in this organization. Navigate to `repository settings` -> `Actions` -> `General` and select `Accessible from repositories in the organization`.
-2. Configure the referencing repository to use workflows from other repos in the organization. For the other repository navigate to `repository settings` -> `Actions` -> `General` and select `Allow all actions and reusable workflows` or `Allow Primoxo actions and reusable workflows`
+2. Configure the referencing repository to use workflows from other repos in the organization. For the other repository navigate to `repository settings` -> `Actions` -> `General` and select `Allow all actions and reusable workflows` or `Allow MeKo-Tech actions and reusable workflows`
 
 ### Using in a Workflow
 
@@ -26,7 +26,7 @@ on:
   # (...)
 jobs:
   job_name:
-    uses: Primoxo/workflows/.github/workflows/<workflow-file>.yml@<git-ref>
+    uses: MeKo-Tech/workflows/.github/workflows/<workflow-file>.yml@<git-ref>
     with:
       # (workflow inputs)
     secrets:
@@ -56,7 +56,7 @@ jobs:
       contents: write
     needs:
       - validate-tag
-    uses: Primoxo/workflows/.github/workflows/force-push-deploy-branch.yml@main
+    uses: MeKo-Tech/workflows/.github/workflows/force-push-deploy-branch.yml@main
     with:
       source_ref: ${{ github.event.ref }}
       target_branch: deployed_staging 

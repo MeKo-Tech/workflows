@@ -9,7 +9,7 @@ name: deploy
 jobs:
   deploy-staging:
     if: ${{ github.event.ref == 'refs/tags/STAGING' }}
-    uses: Primoxo/workflows/.github/workflows/deploy-docker.yml@main
+    uses: MeKo-Tech/workflows/.github/workflows/deploy-docker.yml@main
     with:
       image_name: primoxo/preview-generator
       delete_invalid_tags: true
@@ -34,7 +34,7 @@ jobs:
 
   deploy-production:
     if: ${{ github.event.ref == 'refs/tags/PRODUCTION' }}
-    uses: Primoxo/workflows/.github/workflows/deploy-docker.yml@main
+    uses: MeKo-Tech/workflows/.github/workflows/deploy-docker.yml@main
     with:
       image_name: primoxo/preview-generator
       delete_invalid_tags: true
