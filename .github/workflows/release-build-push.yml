@@ -22,7 +22,7 @@ on:
         default: .release-please-manifest.json
       image_name:
         type: string
-        description: 'name of the docker image (must include package name, e.g. primoxo/preview-generator)'
+        description: 'name of the docker image (must include package name, e.g. meko-tech/preview-generator)'
         required: true
       image_is_latest:
         type: boolean

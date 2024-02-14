@@ -16,7 +16,7 @@ jobs:
       source_ref: ${{ github.event.ref }}
       target_branch: deployed_staging         # name of the target deploy branch (target for force-push)
       image_validate: false                   # do not check whether docker image exists before release (not required for deplyoment)
-      image_name: 'primoxo/release-please'
+      image_name: 'meko-tech/release-please'
       delete_invalid_tags: true               # delete tag `STAGING` from remote in case it does not refer to a valid release
 
   deploy-production:
@@ -26,5 +26,5 @@ jobs:
       source_ref: ${{ github.event.ref }}
       target_branch: deployed_production
       image_validate: false
-      image_name: 'primoxo/release-please'
+      image_name: 'meko-tech/release-please'
       delete_invalid_tags: true

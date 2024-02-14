@@ -8,6 +8,6 @@ name: release-pr
   
 jobs:
   release-pr:
-    uses: Primoxo/workflows/.github/workflows/release-pr.yml@main
+    uses: MeKo-Tech/workflows/.github/workflows/release-pr.yml@main
     with:
       target_branch: main     # target branch for auto-generated PRs

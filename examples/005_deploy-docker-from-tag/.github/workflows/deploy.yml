@@ -11,7 +11,7 @@ jobs:
     if: ${{ github.event.ref == 'refs/tags/STAGING' }}
     uses: MeKo-Tech/workflows/.github/workflows/deploy-docker.yml@main
     with:
-      image_name: primoxo/preview-generator
+      image_name: meko-tech/preview-generator
       delete_invalid_tags: true
       ssh_host: ${{ vars.STAGING_DEPLOY_SSH_HOST }}
       ssh_user: ${{ vars.STAGING_DEPLOY_SSH_USER }}
@@ -36,7 +36,7 @@ jobs:
     if: ${{ github.event.ref == 'refs/tags/PRODUCTION' }}
     uses: MeKo-Tech/workflows/.github/workflows/deploy-docker.yml@main
     with:
-      image_name: primoxo/preview-generator
+      image_name: meko-tech/preview-generator
       delete_invalid_tags: true
       ssh_host: ${{ vars.PRODUCTION_DEPLOY_SSH_HOST }}
       ssh_user: ${{ vars.PRODUCTION_DEPLOY_SSH_USER }}
