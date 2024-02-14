@@ -12,7 +12,7 @@ on:
         default: ${{ github.event.ref }}    # defaults to ref that triggered the (caller) worfklow
       image_name:
         type: string
-        description: Name of the docker image (must include package name, e.g. primoxo/preview-generator)
+        description: Name of the docker image (must include package name, e.g. meko-tech/preview-generator)
         required: true
       image_tag:
         type: string

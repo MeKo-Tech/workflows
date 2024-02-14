@@ -12,7 +12,7 @@ Change `release-please-config.json` to configure changelog generation and versio
 
 
 ## Setup
-1. Follow the instructions in the [README](https://github.com/Primoxo/workflows/blob/main/README.md) to enable reusable workflows for your repository
+1. Follow the instructions in the [README](https://github.com/MeKo-Tech/workflows/blob/main/README.md) to enable reusable workflows for your repository
 2. Copy `.github/workflows` to your repository
 3. Copy `release-please-config.json` to your repository and update the configuration to your needs
     * Update [release-type](https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json) to match the type of your project. This setting is required to correctly update supplementary files (e.g. package.json, go.mod, pyproject.toml,...)

@@ -20,7 +20,7 @@ on:
         default: true
       image_name:
         type: string
-        description: name of the Docker image to check (must include organization name, e.g. primoxo/preview-generator)
+        description: name of the Docker image to check (must include organization name, e.g. meko-tech/preview-generator)
 
     outputs:
       version_tag:
