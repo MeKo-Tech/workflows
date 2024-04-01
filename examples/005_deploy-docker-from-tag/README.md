@@ -1,11 +1,11 @@
 # About
 
-This workflow uses the Tags `STAGING` and `PRODUCTION` to deploy released app versions to a remote docker host. 
+This workflow uses the tags `STAGING` and `PRODUCTION` to deploy released app versions to a remote docker host. 
 
-The workflow uses release-please for automatic changelog generation and version bumps, and for the creation and tagging of GitHub releases.
+The workflow uses [release-please](https://github.com/googleapis/release-please) for automatic changelog generation and version bumps, and for the creation and tagging of GitHub releases.
 The `deploy` workflow is triggered in case either one of the tags `STAGING` or `PRODUCTION` is pushed. The workflow checks out the repo at the tag and reads a docker-compose file from the repository. The docker-compose file is used to start or upgrade the application at a remote docker host using SSH.
 
-Application specific configurations are implemented by passing a multiline string with .env file contents to the workflow which is used for deplyoment. The .env file is interpolated when running docker-compose up. The docker-compose file might make use of env var substitution in various ways (e.g. to specify env vars passed to containers, or to specify container labels).
+Application specific configurations are implemented by passing a multiline string with .env file contents to the workflow which is used for deployment. The .env file is interpolated when running docker-compose up. The docker-compose file might make use of env var substitution in various ways (e.g. to specify env vars passed to containers, or to specify container labels).
 
 As an additional security guard the workflow fails in case the tags `STAGING` or `PRODUCTION` have been pushed for a git ref which is no valid release (i.e. which does not have a Semver tag, no GitHub Release, or no Docker Image with the same tag). The workflow will automatically delete the (invalid) tag ( `STAGING` or `PRODUCTION`) from the remote in this case.
 
