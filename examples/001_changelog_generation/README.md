@@ -2,7 +2,7 @@
 
 The files which are provided with this example can be used to automatically generate changelogs and version bumps from conventional commit messages. 
 The workflow triggers for the events which are specified at `.github/workflows/release-pr.yml` (e.g. push to branch `main`) and uses release-please for changelog generation.
-Release-Please creates a PR which
+[Release-please](https://github.com/googleapis/release-please) creates a PR which
 * updates the changelog at `CHANGELOG.md`
 * updates the version number at `.release-please-manifest.json`
 * updates the version number at supplementary language-specific files (e.g. `package.json`, `go.mod`, `pyproject.toml`,...)
