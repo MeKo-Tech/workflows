@@ -3,7 +3,7 @@
 This workflow uses the Tags `STAGING` and `PRODUCTION` to deploy source code to distinct deploy branches (in this case: `deployed_staging` and `deployed_production`). 
 Third-party app-platforms which allow automatic deployment from branches can be configured to track these branches.
 
-The workflow uses release-please for automatic changelog generation and version bumps, and for the creation and tagging of GitHub releases.
+The workflow uses [release-please](https://github.com/googleapis/release-please) for automatic changelog generation and version bumps, and for the creation and tagging of GitHub releases.
 The `deploy` workflow is triggered in case either one of the tags `STAGING` or `PRODUCTION` is pushed. The workflow checks out the repo at the tag and force-pushes the contents to the deploy branches (potentially overwritting any changes at the deploy branches).
 As a side-effect, this allows to easily rollback changes by moving the tag to a previous release.
 
