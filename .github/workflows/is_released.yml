@@ -1,4 +1,4 @@
-# This workflow checks whether a git ref corresponds to a commit which as been released (see release.yml). The workflow can be used prevent deployment/rollout of source code, which has not been reeleased yet and which might be missing required artefacts (e.g. Docker Images)
+# This workflow checks whether a git ref corresponds to a commit which has been released (see release.yml). The workflow can be used to prevent deployment/rollout of source code, which has not been reeleased yet and which might be missing required artefacts (e.g. Docker Images)
 # 
 # A git ref is considered to have been released, if
 #   * there is a git tag for the same commit, and the tag is a valid semantic version number (e.g. 1.2.3) (CAVE: no leading `v` in tag allowed)
