@@ -1,0 +1,77 @@
+name: k8s-test-go
+
+# Reusable Go test workflow for the MeKo backend pattern.
+#
+# Targets the self-hosted ewws-arc-ci-onprem runner image >= v0.10.0,
+# which preinstalls Go (multiple versions, default 1.24.6), gotestsum
+# v1.13.0, and just 1.50.0. Callers therefore don't need actions/setup-go
+# (unless they need a non-default Go version) or extractions/setup-just.
+#
+# Typical caller:
+#
+#   jobs:
+#     test:
+#       uses: MeKo-Tech/workflows/.github/workflows/k8s-test-go.yml@v2
+#       with:
+#         go_version: "1.25"
+#         working_directory: ./mekorp-backend
+
+on:
+  workflow_call:
+    inputs:
+      go_version:
+        type: string
+        required: false
+        default: ''
+        description: 'Go version to install (e.g. "1.25"). Empty -> use the runner default (1.24.6).'
+      working_directory:
+        type: string
+        required: false
+        default: '.'
+        description: 'Directory containing go.mod'
+      test_targets:
+        type: string
+        required: false
+        default: './...'
+        description: 'Go test target packages'
+      test_flags:
+        type: string
+        required: false
+        default: '-short -coverprofile=coverage.out -covermode=atomic'
+        description: 'Flags passed to gotestsum after `--`'
+      junit_filename:
+        type: string
+        required: false
+        default: 'testresults/test.xml'
+        description: 'Path to JUnit XML output (relative to working_directory)'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: [ewws-arc-ci-onprem]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        if: inputs.go_version != ''
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ inputs.go_version }}
+          cache-dependency-path: ${{ inputs.working_directory }}/go.sum
+
+      - name: Run tests
+        working-directory: ${{ inputs.working_directory }}
+        run: |
+          mkdir -p "$(dirname "${{ inputs.junit_filename }}")"
+          gotestsum --junitfile "${{ inputs.junit_filename }}" -- ${{ inputs.test_flags }} ${{ inputs.test_targets }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ github.job }}
+          path: ${{ inputs.working_directory }}/${{ inputs.junit_filename }}
+          if-no-files-found: warn
