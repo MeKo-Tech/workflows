@@ -1,0 +1,72 @@
+name: k8s-deploy-helmfile
+
+# Reusable deploy workflow for the MeKo k8s pattern.
+#
+# Targets the self-hosted ewws-arc-ci-onprem runner image >= v0.11.0,
+# which preinstalls doctl, helm v3.20.2, helmfile, and the helm-diff +
+# helm-secrets plugins at pinned versions. Callers therefore don't need
+# digitalocean/action-doctl, azure/setup-helm, or helmfile/helmfile-action.
+#
+# Typical caller:
+#
+#   jobs:
+#     deploy:
+#       uses: MeKo-Tech/workflows/.github/workflows/k8s-deploy-helmfile.yml@v2
+#       with:
+#         environment: staging
+#         cluster: ewws-dev
+#       secrets:
+#         doctl_access_token: ${{ secrets.EWWS_DOCTL_ACCESS_TOKEN }}
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+        description: 'helmfile environment name (e.g. staging, prod)'
+      cluster:
+        type: string
+        required: true
+        description: 'DigitalOcean k8s cluster name (e.g. ewws-dev, ewws-prod)'
+      helmfile_args:
+        type: string
+        required: false
+        default: 'apply --detailed-exitcode --suppress-secrets'
+        description: 'Arguments passed to helmfile after `--environment <ENV>` (defaults to apply with secret-suppression)'
+      kubeconfig_expiry_seconds:
+        type: number
+        required: false
+        default: 3600
+        description: 'kubeconfig TTL in seconds (must outlast the helmfile run)'
+      working_directory:
+        type: string
+        required: false
+        default: '.'
+        description: 'Directory containing helmfile.yaml.gotmpl'
+    secrets:
+      doctl_access_token:
+        required: true
+        description: 'DigitalOcean PAT with k8s:read access'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: [ewws-arc-ci-onprem]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Authenticate doctl
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.doctl_access_token }}
+        run: doctl auth init -t "$DIGITALOCEAN_ACCESS_TOKEN"
+
+      - name: Save DigitalOcean kubeconfig
+        run: doctl kubernetes cluster kubeconfig save "${{ inputs.cluster }}" --expiry-seconds "${{ inputs.kubeconfig_expiry_seconds }}"
+
+      - name: Run helmfile
+        working-directory: ${{ inputs.working_directory }}
+        run: helmfile --environment "${{ inputs.environment }}" ${{ inputs.helmfile_args }}
