@@ -55,7 +55,7 @@ jobs:
       - name: delay
         run: sleep ${{ inputs.delay }}
 
-      - uses: google-github-actions/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:  
           token: ${{ secrets.GITHUB_TOKEN }}
           target-branch: ${{ inputs.target_branch }}
