@@ -12,7 +12,7 @@
 #
 # further reading:
 #   * https://github.com/googleapis/release-please
-#   * https://github.com/google-github-actions/release-please-action
+#   * https://github.com/googleapis/release-please-action
 
 
 name: release
@@ -49,7 +49,7 @@ jobs:
       pull-requests: write  # reads und updates PR comments and labels
     outputs:
       release_created: ${{ steps.release.outputs.release_created }} 
-      release_semver: '${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}'  # See https://github.com/google-github-actions/release-please-action?tab=readme-ov-file#root-component-outputs
+      release_semver: '${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}.${{ steps.release.outputs.patch }}'  # See https://github.com/googleapis/release-please-action?tab=readme-ov-file#root-component-outputs
     steps:
       - uses: googleapis/release-please-action@v5
         id: release

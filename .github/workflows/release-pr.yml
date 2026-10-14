@@ -17,7 +17,7 @@
 #
 # further reading:
 #   * https://github.com/googleapis/release-please
-#   * https://github.com/google-github-actions/release-please-action
+#   * https://github.com/googleapis/release-please-action
 name: release-pr
 
 on:
