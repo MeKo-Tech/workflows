@@ -36,7 +36,7 @@ jobs:
       packages: write
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.source_ref }}
           fetch-depth: 1                # only fetch last commit; no history
@@ -49,7 +49,7 @@ jobs:
       # The logic, at which point in time images are created is left to the calling workflows (e.g. by setting appropriate triggers for these workflows). Calling workflows should explicitly define a tag for the docker image
       - name: extract docker metadata
         id: docker_meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/${{ inputs.image_name }}
           tags: |
@@ -58,7 +58,7 @@ jobs:
 
       # login to docker registry / github packages
       - name: docker login
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -66,7 +66,7 @@ jobs:
 
       # build and push image
       - name: build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true

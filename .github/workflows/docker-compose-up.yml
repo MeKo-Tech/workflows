@@ -66,13 +66,13 @@ jobs:
       packages: read
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.source_ref }}
           fetch-depth: 1  # fetch only last comment
 
       - name: add ssh private key
-        uses: webfactory/ssh-agent@v0.8.0
+        uses: webfactory/ssh-agent@v0.10.0
         with:
           ssh-private-key: ${{ secrets.ssh_private_key }}
 
@@ -87,7 +87,7 @@ jobs:
           docker context create ${{ env.DOCKER_CONTEXT_NAME }} --docker "host=ssh://${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
 
       - name: docker login
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

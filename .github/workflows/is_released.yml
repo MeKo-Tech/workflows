@@ -37,7 +37,7 @@ jobs:
       version_tag: ${{ steps.release_tag.outputs.VERSION_TAG }}
     steps:
       - name: checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.source_ref }}
           fetch-depth: 1    # fetch only the latest commit
@@ -75,7 +75,7 @@ jobs:
           gh release view ${{ steps.release_tag.outputs.VERSION_TAG }} --json name --template 'found release: {{.name}}'
 
       - name: docker login
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
